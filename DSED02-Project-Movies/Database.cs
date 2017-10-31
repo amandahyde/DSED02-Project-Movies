@@ -8,7 +8,12 @@ using System.Data.SqlClient;
 
 namespace DSED02_Project_Movies
 {
+  
+
+
     public class Database
+      //Database Connection
+ 
     {
     // Create Connection and command and an adapter.
         private SqlConnection Connection = new SqlConnection();
@@ -26,7 +31,17 @@ namespace DSED02_Project_Movies
             Command.Connection = Connection;
 
         }
+        
+      
+        //PROPERTIES
+        public int CurrentYear { get; set; }
 
+        public int MovieYear { get; set; }
+
+        public int Calculation { get; set; }
+
+
+        //Datafor Customer info
         public DataTable FillDGVCustomerwithCustomerInfo()
         {
             DataTable dt = new DataTable();
@@ -39,7 +54,7 @@ namespace DSED02_Project_Movies
             return dt;
         }
 
-
+        // Data for Movies
         public DataTable FillDGVMoviesWithMoviesInfo()
 
         {
@@ -53,6 +68,8 @@ namespace DSED02_Project_Movies
             return dt;
         }
 
+
+        //Data for Rentals Info
         public DataTable FillDGVRentalsWithRentalsInfo()
 
         {
@@ -60,7 +77,7 @@ namespace DSED02_Project_Movies
             DataTable dt = new DataTable();
 
 
-
+            //Rental info view
             using (da = new SqlDataAdapter("select * from RentalInfo", Connection))
             {
                 Connection.Open();
@@ -77,7 +94,7 @@ namespace DSED02_Project_Movies
             DataTable dt = new DataTable();
 
 
-
+            //Rental info view for movies not returned
             using (da = new SqlDataAdapter("select * from RentalInfo WHERE DateReturned IS NULL", Connection))
             {
                 Connection.Open();
@@ -88,6 +105,39 @@ namespace DSED02_Project_Movies
         }
 
 
+        // Top Customers
+        public DataTable FillDGVTopCustomers()
+        {
+            DataTable dt = new DataTable();
+
+            using (da = new SqlDataAdapter("select * from TopCustomers", Connection))
+            {
+                Connection.Open();
+                da.Fill(dt);
+                Connection.Close();
+            }
+            return dt;
+        }
+
+
+
+        //Top Movies
+        public DataTable FillDGVTopMovies()
+        {
+            DataTable dt = new DataTable();
+
+            using (da = new SqlDataAdapter("select * from TopMovies", Connection))
+            {
+                Connection.Open();
+                da.Fill(dt);
+                Connection.Close();
+            }
+            return dt;
+        }
+
+
+
+        //Add / Update customer
         public string InsertOrUpdateCustomer(string Firstname, string Lastname, string Phone, string Address, string CustID, string AddorUpdate)
         {
             try
@@ -140,7 +190,7 @@ namespace DSED02_Project_Movies
         }
 
 
-
+        //Delete Customer
         public string DeleteCustomer(string CustID)
         {
             var myCommand = new SqlCommand("DELETE FROM Customer WHERE CustID = @CustID");
@@ -153,7 +203,7 @@ namespace DSED02_Project_Movies
             // open connection add in the SQL
             myCommand.ExecuteNonQuery();
             Connection.Close();
-            return "Success";
+            return "Customer has been successfully deleted";
 
 
         }
@@ -170,48 +220,17 @@ namespace DSED02_Project_Movies
             // open connection add in the SQL
             myCommand.ExecuteNonQuery();
             Connection.Close();
-            return "Success";
 
-
-        }
-
-
-
-
-
-        public string AddNewMovie(string MovieID, string Rating, string Title, string Year, string Rental_Cost, string Copies, string Plot, string Genre)
-        {
-            try
-            {
-                var myCommand = new SqlCommand("INSERT INTO Movies (Rating, Title, Year, Rental_Cost, Copies, Plot, Genre) " + "VALUES(@Rating, @Title, @Year, @Rental_Cost, @Copies, @Plot, @Genre)", Connection);
-                //create params
-
-
-                myCommand.Parameters.AddWithValue("Rating", Rating);
-                myCommand.Parameters.AddWithValue("Title", Title);
-                myCommand.Parameters.AddWithValue("Year", Year);
-                myCommand.Parameters.AddWithValue("Rental_Cost", Rental_Cost);
-                myCommand.Parameters.AddWithValue("Copies", Copies);
-                myCommand.Parameters.AddWithValue("Plot", Plot);
-                myCommand.Parameters.AddWithValue("Genre", Genre);
-
-                Connection.Open();
-                // open connection add in the SQL
-                myCommand.ExecuteNonQuery();
-                Connection.Close();
-
-                return " is Successful";
-            }
-            catch (Exception e)
-            {
-
-                Console.WriteLine(e);
-                throw;
-            }
-        }
-
+            return "Movie has been successfully deleted";
         
 
+        }
+
+
+
+
+        
+        //Add or Update Movie
         public string InsertOrUpdateMovie(string MovieID, string Rating, string Title, string Year, string Rental_Cost, string Copies, string Plot, string Genre, string AddorUpdate)
         {
             try
@@ -259,6 +278,8 @@ namespace DSED02_Project_Movies
                     //open connection add in the SQL
                     myCommand.ExecuteNonQuery();
                     Connection.Close();
+
+                    return "Update Successfull";
                 }
 
                 return " is Successfull";
@@ -271,14 +292,12 @@ namespace DSED02_Project_Movies
         }
 
 
-        public string ReturnMovie(string RMID)
+        public string ReturnMovie(string RMID, DateTime myDate)
         {
-            DateTime now = new DateTime();
-            now = DateTime.Now;
+    
+            var myCommand = new SqlCommand("UPDATE RentedMovies set DateReturned=@DateReturned where RMID=@RMID", Connection);
 
-            var myCommand = new SqlCommand("UPDATE RentedMovies set DateReturned = @DateReturned where RMID = @RMID", Connection);
-
-            myCommand.Parameters.AddWithValue("DateReturned", now);
+            myCommand.Parameters.AddWithValue("DateReturned", myDate);
             myCommand.Parameters.AddWithValue("RMID", RMID);
 
             Connection.Open();
@@ -289,6 +308,8 @@ namespace DSED02_Project_Movies
             return " is Successful";
         }
 
+
+        //calculate fee based on year
         public int CaluclateFee(int currentYear, int movieYear)
         {
 
@@ -305,6 +326,8 @@ namespace DSED02_Project_Movies
 
         }
 
+
+        //issue movie
         public string IssueMovie(string MovieIDFK, string CustIDFK)
         {
             DateTime now = new DateTime();
